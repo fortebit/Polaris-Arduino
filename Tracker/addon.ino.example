@@ -1,0 +1,109 @@
+// Implementation of Audio Add-on board functions
+#if !ADDON_INTERFACE
+#line 1 "tracker.h"
+#error "To use Add-On features you must define ADDON_INTERFACE=1 in tracker.h"
+#endif
+
+// -- ADDON INTERFACE FUNCTIONS ---
+
+void addon_delay(long ms) {
+  // Custom delay function, called when timing is not critical
+  // and additional code can be executed, for example:
+  
+  long start = (long)millis();
+  while ((long)millis() - start < ms) {
+    addon_loop();
+    status_delay(100);
+  }
+}
+
+void addon_init() {
+  // Global state initialization and additional pin configuration
+  // (e.g. initialize I/O pins on expansion header, on-chip peripherals like
+  // UART, USART, SPI, I2C, or external I/O expanders)
+}
+
+void addon_setup() {
+  // Additional hardware setup, after modem setup
+  // (e.g. configure external chips, or send additional modem commands)
+}
+
+void addon_loop() {
+  // Anything you want to execute during the main or other wait loops
+}
+
+void addon_sms_command(char *cmd, char *arg, const char *phone) {
+  // Handle SMS commands not already handled by the main application
+}
+
+void addon_collect_data()
+{
+  // Append your own data to send to the server, for example additional sensors
+  
+  data_append_char('{');
+  data_field_restart();
+
+  // first sensor
+  data_field_separator(',');
+  data_append_string("my_sensor1:");
+      
+  char tmp[40];
+  unsigned int value = ...;
+  snprintf(tmp, sizeof(tmp), "%2.2f", value);
+  data_append_string(tmp);
+
+  // second sensor
+  data_field_separator(',');
+  data_append_string("my_sensor2:");
+      
+  ...
+
+  data_append_char('}');
+}
+
+void addon_event(int event) {
+  // Handle event notifications
+  switch (event) {
+  case ON_SETTINGS_DEFAULT:
+    break;
+  case ON_SETTINGS_LOAD:
+    break;
+  case ON_SETTINGS_SAVE:
+    break;
+  case ON_CLOCK_PAUSE:
+    break;
+  case ON_CLOCK_RESUME:
+    break;
+  case ON_DEVICE_STANDBY:
+    break;
+  case ON_DEVICE_WAKEUP:
+    break;
+  case ON_MODEM_REPLY:
+    break;
+  case ON_MODEM_ACTIVATION:
+    break;  
+  case ON_SEND_STARTED:
+    break;
+  case ON_SEND_DATA:
+    break;
+  case ON_SEND_COMPLETED:
+    break;
+  case ON_SEND_FAILED:
+    break;
+  case ON_RECEIVE_STARTED:
+    break;
+  case ON_RECEIVE_DATA:
+    break;
+  case ON_RECEIVE_COMPLETED:
+    break;
+  case ON_RECEIVE_FAILED:
+    break;
+  case ON_LOCATION_FIXED:
+    break;
+  case ON_LOCATION_LOST:
+    break;
+  default:
+    break;
+  }
+}
+
