@@ -245,6 +245,9 @@ void loop() {
           cpu_full_speed();
           gsm_open();
         }
+        // restart sending data
+        collect_all_data(IGNT_STAT);
+        send_data();
       }
     } else {
       if (engineRunning != 1) {
@@ -270,7 +273,7 @@ void loop() {
     }
   }
 
-  if (!ENGINE_RUNNING_LOG_FAST_AS_POSSIBLE || ALWAYS_ON || IGNT_STAT != 0 || !SEND_DATA) {
+  if (!ENGINE_RUNNING_LOG_FAST_AS_POSSIBLE || ALWAYS_ON || !SEND_DATA) {
     time_stop = millis();
 
     //signed difference is good if less than MAX_LONG
@@ -278,12 +281,19 @@ void loop() {
     time_diff = config.interval - time_diff;
 
     DEBUG_PRINT("Sleeping for:");
-    DEBUG_PRINTLN(time_diff);
-    DEBUG_PRINT("ms");
+    DEBUG_PRINT(time_diff);
+    DEBUG_PRINTLN("ms");
 
     if (time_diff < 1000) {
       addon_delay(1000); // minimal wait to let addon code execute
     } else {
+      while (time_diff > 1000) {
+        addon_delay(1000); // minimal wait to let addon code execute
+        time_diff -= 1000;
+        // break earlier if ignition status changed
+        if (!ALWAYS_ON && IGNT_STAT != digitalRead(PIN_S_DETECT))
+          time_diff = 0;
+      }
       addon_delay(time_diff);
     }
   } else {
@@ -295,7 +305,7 @@ void loop() {
 
   if (ALWAYS_ON || IGNT_STAT == 0) {
     if (IGNT_STAT == 0) {
-      DEBUG_PRINT("Ignition is ON!");
+      DEBUG_PRINTLN("Ignition is ON!");
       // Insert here only code that should be processed when Ignition is ON
     }
 
@@ -315,7 +325,7 @@ void loop() {
     }
 #endif
   } else {
-    DEBUG_PRINT("Ignition is OFF!");
+    DEBUG_PRINTLN("Ignition is OFF!");
     // Insert here only code that should be processed when Ignition is OFF
 
 #if SMS_CHECK_INTERVAL_COUNT > 0
