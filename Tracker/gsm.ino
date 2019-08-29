@@ -1072,19 +1072,20 @@ int gsm_send_done() {
   return 0; // error
 }
 
+
+char HTTP_HEADER0[512]; // buffer for HTTP request line (verb + URL)
+
 #ifdef HTTP_USE_GET
 #ifdef HTTP_USE_JSON
 #error "Cannot use JSON format with HTTP GET request!"
 #endif
-const char HTTP_HEADER0[ ] =        //HTTP header line before GET params
-  "GET " URL "?";
 const char HTTP_HEADER1[ ] =        //HTTP header line before length
   " HTTP/1.1\r\n"
   "Host: " HOSTNAME "\r\n"
   "Content-length: 0";
 #else
 const char HTTP_HEADER1[ ] =        //HTTP header line before length
-  "POST " URL " HTTP/1.1\r\n"
+  " HTTP/1.1\r\n"
   "Host: " HOSTNAME "\r\n"
 #ifdef HTTP_USE_JSON
   "Content-Type:application/json\r\n"
@@ -1106,30 +1107,58 @@ int gsm_send_http_current() {
   DEBUG_FUNCTION_PRINTLN("Sending current data:");
   DEBUG_PRINTLN(data_current);
 
-  //getting length of data full package
-  int http_len = strlen(HTTP_PARAM_IMEI) + strlen(HTTP_PARAM_KEY) + strlen(HTTP_PARAM_DATA) + 5;    //imei= &key= &d=
+  // calculate headers length
+  int http_len = strlcpy(HTTP_HEADER0,
 #ifdef HTTP_USE_GET
-  http_len += strlen(config.imei)+strlen(config.key);
+    "GET "
+#ifndef URL_FORMAT_ARGS
+    URL "?"
+#endif
 #else
+    "POST "
+#ifndef URL_FORMAT_ARGS
+    URL
+#endif
+#endif
+    , sizeof(HTTP_HEADER0));
+    
+#ifdef URL_FORMAT_ARGS
+  http_len += snprintf(HTTP_HEADER0+http_len,sizeof(HTTP_HEADER0)-http_len,
+#ifdef HTTP_USE_GET
+    URL "?",
+#else
+    URL,
+#endif
+    URL_FORMAT_ARGS
+  );
+#endif
+
+  // calculate content length
 #ifdef HTTP_USE_JSON
-  // override length for JSON format
-  http_len = strlen(data_current);
+  // only POST request is supported
+  int body_len = strlen(data_current);
 #else
-  http_len += strlen(config.imei)+strlen(config.key)+url_encoded_strlen(data_current);
-#endif
-#endif
-
-  DEBUG_FUNCTION_PRINT("Length of data packet=");
-  DEBUG_PRINTLN(http_len);
-
+  // only parameters length
+  int param_len = strlen(HTTP_PARAM_IMEI) + strlen(HTTP_PARAM_KEY) + strlen(HTTP_PARAM_DATA) + 5 // imei= &key= &d=
+     + strlen(config.imei) + strlen(config.key);
 #ifdef HTTP_USE_GET
-  int tmp_len = strlen(HTTP_HEADER0)+http_len;
+  // GET params are in request headers
+  http_len += param_len;
 #else
-  //length of header package
-  char tmp_http_len[7];
-  itoa(http_len, tmp_http_len, 10);
+  // POST params are in request body
+  int body_len = param_len + url_encoded_strlen(data_current);
+#endif
+#endif
+  
+#ifndef HTTP_USE_GET
+  DEBUG_FUNCTION_PRINT("Content length=");
+  DEBUG_PRINTLN(body_len);
 
-  int tmp_len = strlen(HTTP_HEADER1)+strlen(tmp_http_len)+strlen(HTTP_HEADER2);
+  // update header with content length
+  char tmp_body_len[8];
+  itoa(body_len, tmp_body_len, 10);
+
+  http_len += strlen(HTTP_HEADER1)+strlen(tmp_body_len)+strlen(HTTP_HEADER2);
 #endif
 
   addon_event(ON_SEND_DATA);
@@ -1139,26 +1168,24 @@ int gsm_send_http_current() {
   }
 
   DEBUG_FUNCTION_PRINT("Length of header packet=");
-  DEBUG_PRINTLN(tmp_len);
+  DEBUG_PRINTLN(http_len);
 
-  //sending header packet to remote host
-  if (!gsm_send_begin(tmp_len)) {
+  // sending header packet to remote host
+  if (!gsm_send_begin(http_len)) {
     DEBUG_FUNCTION_PRINTLN("send refused");
     return 0; // abort
   }
 
-  //sending header
-#ifdef HTTP_USE_GET
+  DEBUG_FUNCTION_PRINTLN("Sending request line");
   gsm_port.print(HTTP_HEADER0);
-
+  
+#ifdef HTTP_USE_GET
   DEBUG_FUNCTION_PRINTLN("Sending GET params");
-  DEBUG_FUNCTION_PRINT("Sending IMEI and Key=");
-  DEBUG_PRINTLN(config.imei);
-  // don't disclose the key
-
+  
 #else
+  DEBUG_FUNCTION_PRINTLN("Sending POST headers");
   gsm_port.print(HTTP_HEADER1);
-  gsm_port.print(tmp_http_len);
+  gsm_port.print(tmp_body_len);
   gsm_port.print(HTTP_HEADER2);
 
   if (!gsm_send_done()) {
@@ -1176,18 +1203,22 @@ int gsm_send_http_current() {
   }
 
 #ifndef HTTP_USE_JSON
-  DEBUG_FUNCTION_PRINT("Sending IMEI and Key=");
-  DEBUG_PRINTLN(config.imei);
-  // don't disclose the key
-  //sending imei and key first
-  if (!gsm_send_begin(13+strlen(config.imei)+strlen(config.key))) {
+  DEBUG_FUNCTION_PRINTLN("Sending POST params");
+  // prepare to send params
+  if (!gsm_send_begin(param_len) {
     DEBUG_FUNCTION_PRINT("send refused");
     return 0; // abort
   }
 #endif
 #endif
 
+  // send params for both GET and POST
 #ifndef HTTP_USE_JSON
+  DEBUG_FUNCTION_PRINT("Sending IMEI and Key=");
+  DEBUG_PRINTLN(config.imei);
+  // don't disclose the key
+  
+  // send GET or POST params (data is on a separate packet)
   gsm_port.print(HTTP_PARAM_IMEI "=");
   gsm_port.print(config.imei);
   gsm_port.print("&" HTTP_PARAM_KEY "=");
@@ -1203,7 +1234,7 @@ int gsm_send_http_current() {
   gsm_validate_tcp();
 #endif
 
-  DEBUG_FUNCTION_PRINTLN("Sending body");
+  DEBUG_FUNCTION_PRINTLN("Sending data");
   int tmp_ret = gsm_send_data_current();
   
 #ifdef HTTP_USE_GET
@@ -1211,7 +1242,7 @@ int gsm_send_http_current() {
     gsm_validate_tcp();
     
     // finish sending headers
-    tmp_len = strlen(HTTP_HEADER1)+strlen(HTTP_HEADER2);
+    http_len = strlen(HTTP_HEADER1)+strlen(HTTP_HEADER2);
     
     addon_event(ON_SEND_DATA);
     if (gsm_get_modem_status() == 4) {
@@ -1220,10 +1251,10 @@ int gsm_send_http_current() {
     }
     
     DEBUG_FUNCTION_PRINT("Length of header packet=");
-    DEBUG_PRINTLN(tmp_len);
+    DEBUG_PRINTLN(http_len);
 
     //sending header packet to remote host
-    if (!gsm_send_begin(tmp_len)) {
+    if (!gsm_send_begin(http_len)) {
       DEBUG_FUNCTION_PRINTLN("send refused");
       return 0; // abort
     }

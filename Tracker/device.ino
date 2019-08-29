@@ -219,3 +219,52 @@ void kill_power() {
   for(;;) // freeze in low power mode
   reboot();
 }
+
+#if (OPENTRACKER_HW_REV >= 0x0300)
+void generate_token(char out[], const char* imei, const uint32_t* u) {
+  static const char cmap[] = "bBcCdDeEfFgGkKmMnNpPrRsStTuUwWzZ";
+  
+  char tmp[9];
+  strlcpy(tmp, &imei[0], sizeof(tmp));
+  uint32_t a = atoi(tmp);
+  strlcpy(tmp, &imei[3], sizeof(tmp));
+  uint32_t b = atoi(tmp);
+  strlcpy(tmp, &imei[6], sizeof(tmp));
+  uint32_t c = atoi(tmp);
+  
+  a += u[0] - u[1];
+  b += u[1] - u[2];
+  c += u[2] - u[0];
+
+  a = a + (b * c);
+  a = (a ^ (a>>14)) & 0xFFFFF;
+  b = ((a * b) + c);
+  b = (b ^ (b >> 14)) & 0xFFFFF;
+
+  out[0] = 'A';
+  out[1] = cmap[a & 0x1F];
+  out[2] = cmap[(a>>5) & 0x1F];
+  out[3] = cmap[(a>>10) & 0x1F];
+  out[4] = cmap[(a>>15) & 0x1F];
+  out[5] = cmap[b & 0x1F];
+  out[6] = cmap[(b>>5) & 0x1F];
+  out[7] = cmap[(b>>10) & 0x1F];
+  out[8] = cmap[(b>>15) & 0x1F];
+  out[9] = '_';
+  for (c = 10, b = 0; b < 15; b += 3) {
+    char tmp[4];
+    strlcpy(tmp, &imei[b], sizeof(tmp));
+    a = atoi(tmp);
+    out[c++] = cmap[a & 0x1F];
+    out[c++] = cmap[(a>>5) & 0x1F];
+  }
+  out[20] = 0;
+}   
+
+const char* get_access_token() {
+  static char token[24] = { 0 };
+  if (token[0] == 0)
+    generate_token(token, config.imei, (const uint32_t*)UID_BASE);
+  return token;
+}
+#endif
