@@ -343,11 +343,9 @@ void gsm_enable_time_sync() {
 #if MODEM_M95
   gsm_port.print("AT+QNITZ=1\r");
   gsm_wait_for_reply(1,0);
-
-  gsm_port.print("AT+CTZU=2\r");
-#else
-  gsm_port.print("AT+CTZU=1\r");
 #endif
+
+  gsm_port.print("AT+CTZU=1\r");
   gsm_wait_for_reply(1,0);
 }
 
