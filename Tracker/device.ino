@@ -220,7 +220,6 @@ void kill_power() {
   reboot();
 }
 
-#if (OPENTRACKER_HW_REV >= 0x0300)
 void generate_token(char out[], const char* imei, const uint32_t* u) {
   static const char cmap[] = "bBcCdDeEfFgGkKmMnNpPrRsStTuUwWzZ";
   
@@ -261,10 +260,37 @@ void generate_token(char out[], const char* imei, const uint32_t* u) {
   out[20] = 0;
 }   
 
+#if (OPENTRACKER_HW_REV >= 0x0300)
+
 const char* get_access_token() {
   static char token[24] = { 0 };
   if (token[0] == 0)
     generate_token(token, config.imei, (const uint32_t*)UID_BASE);
   return token;
 }
+
+#else // legacy OpenTracker
+
+#include "flash_efc.h"
+
+const char* get_access_token() {
+  static char token[24] = { 0 };
+  if (token[0] == 0) {
+    uint32_t unique_id[4] = { 0,0,0,0 };
+    flash_read_unique_id(unique_id, 4);
+    /*
+    DEBUG_PRINTLN("unique_id: ");
+    DEBUG_PRINTLN(unique_id[0],HEX);
+    DEBUG_PRINTLN(unique_id[1],HEX);
+    DEBUG_PRINTLN(unique_id[2],HEX);
+    DEBUG_PRINTLN(unique_id[3],HEX);
+    */
+    unique_id[1] ^= unique_id[2];
+    unique_id[0] ^= unique_id[1];
+    unique_id[2] ^= unique_id[3];
+    generate_token(token, config.imei, unique_id);
+  }
+  return token;
+}
+
 #endif
