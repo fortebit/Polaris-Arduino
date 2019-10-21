@@ -18,6 +18,7 @@ void battery_init() {
   pinMode(PIN_C_CHRG_PROG, OUTPUT);
   digitalWrite(PIN_C_CHRG_PROG, HIGH);
 #endif
+  battery_source_isr();
 }
 
 enum { SUPPLY_MAIN, SUPPLY_SECONDARY };

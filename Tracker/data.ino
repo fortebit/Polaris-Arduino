@@ -130,7 +130,7 @@ void collect_all_data(int ignitionState) {
   data_field_restart();
 #endif
 
-  // append battery level to data packet
+  // append main battery level to data packet
   if(DATA_INCLUDE_BATTERY_LEVEL) {
     data_field_separator(',');
 #ifdef HTTP_USE_JSON
@@ -141,6 +141,34 @@ void collect_all_data(int ignitionState) {
     dtostrf(sensorValue,2,2,batteryLevel);
     data_append_string(batteryLevel);
   }
+
+#ifdef AIN_BATT_VOLT
+  // append backup battery level to data packet
+  if(DATA_INCLUDE_BACKUP_LEVEL) {
+    data_field_separator(',');
+#ifdef HTTP_USE_JSON
+    data_append_string("\"backup\":");
+#endif
+    float sensorValue = analog_input_voltage(AIN_BATT_VOLT, LOW);
+    char batteryLevel[10];
+    dtostrf(sensorValue,2,2,batteryLevel);
+    data_append_string(batteryLevel);
+  }
+
+  // append charger status to data packet
+  if(DATA_INCLUDE_CHARGER_STATUS) {
+    data_field_separator(',');
+#ifdef HTTP_USE_JSON
+    data_append_string("\"charger\":");
+#endif
+    int charge = -1;
+    if (battery_get_source() == 0)
+      charge = battery_get_status();
+    char tmp[10];
+    ltoa(charge, tmp, 10);
+    data_append_string(tmp);
+  }
+#endif
 
   // ignition state
   if(DATA_INCLUDE_IGNITION_STATE) {
