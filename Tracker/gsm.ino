@@ -558,24 +558,24 @@ void gsm_startup_cmd() {
 
   //disable echo for TCP data
   gsm_port.print("AT+QISDE=0\r");
-
   gsm_wait_for_reply(1,0);
 
 #if MODEM_M95
   //set receiving TCP data by command
   gsm_port.print("AT+QINDI=1\r");
-
   gsm_wait_for_reply(1,0);
 
   //set multiple socket support
   gsm_port.print("AT+QIMUX=1\r");
-
   gsm_wait_for_reply(1,0);
 #endif
 
   //set SMS as text format
   gsm_port.print("AT+CMGF=1\r");
+  gsm_wait_for_reply(1,0);
 
+  //set SMS text encoding
+  gsm_port.print("AT+CSCS=\"IRA\"\r");
   gsm_wait_for_reply(1,0);
 }
 
