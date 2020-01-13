@@ -177,11 +177,15 @@ void parse_cmd(char *cmd) {
     DEBUG_PRINTLN(tmp);
 
     if(strlen(tmp) == 20 && tmp[2] == '/' && tmp[5] == '/' && tmp[8] == ','
-        && tmp[11] == ':' && tmp[14] == ':' && tmp[17] == '+') {
+        && tmp[11] == ':' && tmp[14] == ':' && (tmp[17] == '+' || tmp[17] == 0)) {
       DEBUG_PRINT("Valid time string found.");
 
-      //setting current time
+      //setting current time (make UTC)
       strlcpy(time_char, tmp, sizeof(time_char));
+      time_char[17] = '+';
+      time_char[18] = '0';
+      time_char[19] = '0';
+      time_char[20] = 0;
 
       gsm_set_time();
     }
