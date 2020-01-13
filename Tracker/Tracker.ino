@@ -134,7 +134,7 @@ void setup() {
   data_reset();
 
   // with a new SIM delete APN config and require a new one
-  if (settings_compare(offsetof(settings, iccid), strlen(config.iccid))) {
+  if (config.iccid[0] && settings_compare(offsetof(settings, iccid), strlen(config.iccid))) {
     DEBUG_PRINTLN(F("New SIM detected!"));
 #ifdef KNOWN_APN_LIST
     // try with current APN first
