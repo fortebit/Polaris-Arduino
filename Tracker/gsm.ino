@@ -244,7 +244,7 @@ void gsm_setup() {
   gsm_port.print(GSM_USE_GSM_BAND, HEX);
   gsm_port.print(",");
   char tmp[32] = {0};
-  snprintf(tmp, sizeof(tmp), "%X%08X", (uint32_t)(GSM_USE_CATM1_BAND>>32), (uint32_t)GSM_USE_CATM1_BAND);
+  snprintf(tmp, sizeof(tmp), "%lX%08lX", (uint32_t)(GSM_USE_CATM1_BAND>>32), (uint32_t)GSM_USE_CATM1_BAND);
   gsm_port.print(tmp);
   gsm_port.print(",");
   gsm_port.print(GSM_USE_CATNB1_BAND, HEX);
