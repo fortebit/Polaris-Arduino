@@ -1203,7 +1203,7 @@ int gsm_send_http_current() {
 #ifndef HTTP_USE_JSON
   DEBUG_FUNCTION_PRINTLN("Sending POST params");
   // prepare to send params
-  if (!gsm_send_begin(param_len) {
+  if (!gsm_send_begin(param_len)) {
     DEBUG_FUNCTION_PRINT("send refused");
     return 0; // abort
   }
