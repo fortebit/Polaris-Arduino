@@ -111,6 +111,10 @@ void setup() {
   //GSM setup
   gsm_setup();
 
+  //Secret data not printed by default
+  //DEBUG_PRINTLN("Access token:");
+  //DEBUG_PRINTLN(get_access_token());
+  
 #if DEBUG == 10
   debug_gsm_terminal();
 #endif
