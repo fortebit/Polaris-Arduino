@@ -85,12 +85,8 @@ void gps_wakeup() {
   gps_port.print("\r\n");
 }
 
-void collect_gps_data() {
-  collect_gps_data(false);
-}
-
 //collect GPS data from serial port
-void collect_gps_data(bool useJSON) {
+void collect_gps_data() {
   int fix = 0;
 
   char tmp[15];
@@ -226,81 +222,73 @@ void collect_gps_data(bool useJSON) {
 
         if(DATA_INCLUDE_GPS_DATE) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"date\":");
+          data_append_legacy_sensor("date");
           //converting date to data packet
-          ltoa(date_gps + 1000000, tmp, 10);
-          data_append_string(tmp + 1);
+          data_append_fixed(date_gps,6);
         }
 
         if(DATA_INCLUDE_GPS_TIME) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"time\":");
+          data_append_legacy_sensor("time");
           //time
-          ltoa(time_gps + 100000000, tmp, 10);
-          data_append_string(tmp + 1);
+          data_append_fixed(time_gps,6);
         }
 
         if(DATA_INCLUDE_LATITUDE) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"latitude\":");
-          dtostrf(flat,1,6,tmp);
-          data_append_string(tmp);
+          data_append_legacy_sensor("latitude");
+          data_append_float(flat,1,6);
         }
 
         if(DATA_INCLUDE_LONGITUDE) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"longitude\":");
-          dtostrf(flon,1,6,tmp);
-          data_append_string(tmp);
+          data_append_legacy_sensor("longitude");
+          data_append_float(flon,1,6);
         }
         
         if(DATA_INCLUDE_SPEED) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"speed\":");
-          dtostrf(fkmph,1,2,tmp);
-          data_append_string(tmp);
+          data_append_legacy_sensor("speed");
+          data_append_float(fkmph,1,2);
         }
 
         if(DATA_INCLUDE_ALTITUDE) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"altitude\":");
-          dtostrf(falt,1,2,tmp);
-          data_append_string(tmp);
+          data_append_legacy_sensor("altitude");
+          data_append_float(falt,1,2);
         }
 
         if(DATA_INCLUDE_HEADING) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"COG\":");
-          dtostrf(fc,1,2,tmp);
-          data_append_string(tmp);
+          data_append_legacy_sensor("COG");
+          data_append_float(fc,1,2);
         }
 
         if(DATA_INCLUDE_HDOP) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"HDOP\":");
+          data_append_legacy_sensor("HDOP");
           #if DATA_USE_HDOP_FLOAT
-            dtostrf(hdop/100.0f,1,2,tmp);
+            data_append_float(hdop/100.0f,1,2);
           #else          
-            ltoa(hdop, tmp, 10);
+            data_append_long(hdop);
           #endif
-          data_append_string(tmp);
         }
 
         if(DATA_INCLUDE_SATELLITES) {
           data_field_separator(',');
-          if (useJSON) data_append_string("\"nsat\":");
-          ltoa(sats, tmp, 10);
-          data_append_string(tmp);
+          data_append_legacy_sensor("nsat");
+          data_append_long(sats);
         }
 
         //save last gps data date/time
         last_time_gps = time_gps;
         last_date_gps = date_gps;
 
-        //save current position
+        //save current position for SMS notifications
+#define dtostrf(val, width, prec, sout) snprintf(sout, sizeof(sout), "%" #width "." #prec "f", (double)(val))
         dtostrf(flat,1,6,lat_current);
         dtostrf(flon,1,6,lon_current);
-
+#undef  dtostrf
         blink_got_gps();
       }
     }

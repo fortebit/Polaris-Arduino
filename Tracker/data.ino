@@ -1,4 +1,5 @@
 #include <time.h>
+#include <stdarg.h>
 
 //collect and send GPS data for sending
 #define MAX_DATA_INDEX (int)(sizeof(data_current) - 2)
@@ -14,6 +15,34 @@ void data_append_string(const char *str) {
   while (*str != 0 && data_index < MAX_DATA_INDEX)
     data_current[data_index++] = *str++;
   data_current[data_index] = 0;
+}
+
+void data_append_legacy_sensor(const char *str) {
+#ifdef HTTP_USE_JSON
+  data_append_char('\"');
+  data_append_string(str);
+  data_append_char('\"');
+  data_append_char(':');
+#endif
+}
+
+void data_append_sensor(const char *str) {
+#ifdef HTTP_USE_JSON
+  data_append_char('\"');
+  data_append_string(str);
+  data_append_char('\"');
+  data_append_char(':');
+#else // use old format
+  data_append_string(str);
+  data_append_char(':');
+#endif
+}
+
+void data_append_format(const char *fmt, ...) {
+  va_list vl;
+  va_start(vl, fmt);
+  vsnprintf(data_current + data_index, MAX_DATA_INDEX - data_index + 1, fmt, vl);
+  va_end(vl);
 }
 
 void data_reset() {
@@ -119,11 +148,9 @@ void collect_all_data(int ignitionState) {
 #endif
   data_field_restart();
 
-#ifdef HTTP_USE_JSON
-  collect_gps_data(true);
-#else
-  collect_gps_data(false);
+  collect_gps_data();
   
+#ifndef HTTP_USE_JSON
   //indicate stop of GPS data packet
   data_append_char(']');
 
@@ -133,49 +160,37 @@ void collect_all_data(int ignitionState) {
   // append main battery level to data packet
   if(DATA_INCLUDE_BATTERY_LEVEL) {
     data_field_separator(',');
-#ifdef HTTP_USE_JSON
-    data_append_string("\"battery\":");
-#endif
+    data_append_legacy_sensor("battery");
     float sensorValue = analog_input_voltage(AIN_S_INLEVEL, HIGH);
-    char batteryLevel[10];
-    dtostrf(sensorValue,2,2,batteryLevel);
-    data_append_string(batteryLevel);
+    data_append_float(sensorValue,2,2);
   }
 
 #ifdef AIN_BATT_VOLT
   // append backup battery level to data packet
   if(DATA_INCLUDE_BACKUP_LEVEL) {
     data_field_separator(',');
-#ifdef HTTP_USE_JSON
-    data_append_string("\"backup\":");
-#endif
+    data_append_legacy_sensor("backup");
     float sensorValue = analog_input_voltage(AIN_BATT_VOLT, LOW);
-    char batteryLevel[10];
-    dtostrf(sensorValue,2,2,batteryLevel);
-    data_append_string(batteryLevel);
+    data_append_float(sensorValue,2,2);
   }
 
   // append charger status to data packet
   if(DATA_INCLUDE_CHARGER_STATUS) {
     data_field_separator(',');
-#ifdef HTTP_USE_JSON
-    data_append_string("\"charger\":");
-#endif
+    data_append_legacy_sensor("charger");
+
     int charge = -1;
     if (battery_get_source() == 0)
       charge = battery_get_status();
-    char tmp[10];
-    ltoa(charge, tmp, 10);
-    data_append_string(tmp);
+    data_append_long(charge);
   }
 #endif
 
   // ignition state
   if(DATA_INCLUDE_IGNITION_STATE) {
     data_field_separator(',');
-#ifdef HTTP_USE_JSON
-    data_append_string("\"ignition\":");
-#endif
+    data_append_legacy_sensor("ignition");
+
     if(ignitionState == -1) {
       data_append_char('2'); // backup source
     } else if(ignitionState == 0) {
@@ -188,19 +203,13 @@ void collect_all_data(int ignitionState) {
   // engine running time
   if(DATA_INCLUDE_ENGINE_RUNNING_TIME) {
     unsigned long currentRunningTime = engineRunningTime;
-    char runningTimeString[32];
-
     if(engineRunning == 0) {
       currentRunningTime += (millis() - engine_start);
     }
 
-    snprintf(runningTimeString,32,"%ld",(unsigned long) currentRunningTime / 1000);
-
     data_field_separator(',');
-#ifdef HTTP_USE_JSON
-    data_append_string("\"running\":");
-#endif
-    data_append_string(runningTimeString);
+    data_append_legacy_sensor("running");
+    data_append_long(currentRunningTime / 1000);
   }
 
   addon_collect_data();

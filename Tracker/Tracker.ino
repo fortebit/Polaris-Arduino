@@ -10,8 +10,10 @@
 #include <TinyGPS.h>
 #include <DueFlashStorage.h>
 
-//optimization
-#define dtostrf(val, width, prec, sout) (void) sprintf(sout, "%" #width "." #prec "f", (double)(val))
+//declarations
+#define data_append_float(val, width, prec) data_append_format("%" #width "." #prec "f", (double)(val))
+#define data_append_long(val) data_append_format("%ld", (long)(val))
+#define data_append_fixed(val, width) data_append_format("%0" #width "ld", (long)(val))
 
 bool debug_enable = true; // runtime flag to disable debug console
 
