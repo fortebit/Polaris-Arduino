@@ -56,11 +56,11 @@
 #define DATA_INCLUDE_HDOP 1                 // enable to include hdop
 #define DATA_USE_HDOP_FLOAT 1               // use decimal format for HDOP
 #define DATA_INCLUDE_SATELLITES 1           // enable to include satellites
-#define DATA_INCLUDE_BATTERY_LEVEL 1        // enable to include the battery level in the POST string
+#define DATA_INCLUDE_BATTERY_LEVEL 1        // enable to include the battery level (Main)
+#define DATA_INCLUDE_BACKUP_LEVEL 1         // enable to include backup battery level (LiPo)
+#define DATA_INCLUDE_CHARGER_STATUS 1       // enable to include backup battery charger status
 #define DATA_INCLUDE_IGNITION_STATE 1       // enable to include the ignition state in the POST string
 #define DATA_INCLUDE_ENGINE_RUNNING_TIME 0  // enable to include the engine running time (in seconds) in the POST string
-#define DATA_INCLUDE_BACKUP_LEVEL 0         // enable to include the backup battery level in the POST string
-#define DATA_INCLUDE_CHARGER_STATUS 0       // enable to include the charger status in the POST string
 
 #define PARSE_IGNORE_EOF 1        // 0=consider transmission successful if "eof" included in response body (default)
 #define PARSE_IGNORE_COMMANDS 1   // 0=parse commands included in response body (default)

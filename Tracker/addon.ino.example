@@ -45,18 +45,16 @@ void addon_collect_data()
 
   // first sensor
   data_field_separator(',');
-  data_append_string("my_sensor1:");
-      
-  char tmp[40];
-  unsigned int value = ...;
-  snprintf(tmp, sizeof(tmp), "%2.2f", value);
-  data_append_string(tmp);
+  data_append_sensor("my_sensor1");
+  float value = 123.45;
+  data_append_float(value, 2, 2);
 
   // second sensor
   data_field_separator(',');
-  data_append_string("my_sensor2:");
-      
-  ...
+  data_append_sensor("my_sensor2");
+  data_append_long(12345);
+   
+  //...
 
   data_append_char('}');
 }
@@ -106,4 +104,3 @@ void addon_event(int event) {
     break;
   }
 }
-
