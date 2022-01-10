@@ -1,0 +1,115 @@
+#define ADDON_INTERFACE 0     //non-zero if you have custom addon implementation
+
+//OpenTracker config
+#define DEBUG 1               //debug console (0=disabled, 1=send diangostic messages, 2=also accept test commands)
+
+#define ALWAYS_ON 0           //set to 1 to make the tracker log even with the ignition off
+
+//default settings (can be overwritten and stored in EEPRom)
+#define INTERVAL  15000        //how often to collect data (milli sec, 600000 - 10 mins)
+#define INTERVAL_SEND 1       //how many times to collect data before sending (times), sending interval interval*interval_send (4 default)
+#define POWERSAVE 0           //enable power saving mode with engine off (turn off modem data session, slow down CPU)
+#define KEY "cSQ88qShwC3"     //key for connection, will be sent with every data transmission - max 12 chars
+#define DATA_LIMIT 2500       //current data limit, data collected before sending to remote server can not exceed this
+#define SMS_KEY "pass"        //default password for SMS auth
+#define SIM_PIN ""            //default SIM PIN (none)
+
+#define SMS_CHECK_INCLUDE_IMEI  0           // 0=check only password, 1=also check IMEI (format: #pass@imei,command=value)
+#define SMS_CHECK_INTERVAL_COUNT          6 // 0=disable SMS check with engine off, 1-N=check every N cycles of interval time
+#define SMS_CHECK_INTERVAL_ENGINE_RUNNING 2 // 0=disable SMS check with engine running, 1-N=check every N cycles of interval time
+
+#define LOCATE_COMMAND_FORMAT_IOS 0         // 1=google maps links will be sent as comgooglemaps://, 0=use format https://maps.google...
+
+#define GSM_USE_NTP_SERVER "pool.ntp.org"   // use Network Time Protocol server for modem clock update (undefine to disable)
+#define GSM_NTP_COMMAND_TIMEOUT 30          // max seconds to wait for NTP synchronization result
+
+#define GSM_MODEM_COMMAND_TIMEOUT 10
+#define GSM_SEND_FAILURES_REBOOT 15         // 0=disabled, increase to set the number of GSM data send failures that will trigger a reboot of the opentracker device
+#define GSM_REPLY_FAILURES_REBOOT 10        // 0=disabled, increase to set the number of GSM reply failures that will trigger a reboot of the opentracker device
+#define GSM_DISCONNECT_AFTER_SEND 0         // 0=keep modem data session active, only close TCP connection (default), 1=close data session after each send
+
+//#define GSM_USE_CUSTOM_DNS "8.8.8.8"        // undefine to keep default DNS assigned by network
+
+//#define GSM_USE_GSM_BAND ALL_GSM_BAND       // use only selected radio bands (combine GSM_BAND_ + 850,900,1800,1900)
+//#define GSM_USE_CATM1_BAND ALL_CATM1_BAND   // use only selected radio bands (combine LTE_BAND_ + B1,B2,B3,B4,B5,B8,B12,B13,B18,B19,B20,B26,B28,B39)
+//#define GSM_USE_CATNB1_BAND ALL_CATNB1_BAND // use only selected radio bands (combine LTE_BAND_ + B1,B2,B3,B4,B5,B8,B12,B13,B18,B19,B20,B26,B28)
+
+//Example for Cat-NB1 with Vodafone
+//#define GSM_USE_CATNB1_BAND LTE_BAND_B20
+//#define GSM_SCAN_MODE 3                     // undefined or 0=Auto, 1=GSM Only, 3=LTE Only
+//#define GSM_SCAN_SEQUENCE 030201            // octal format (01=GSM, 02=LTE Cat-M1, 03=LTE Cat-NB1)
+//#define GSM_SCAN_LTE_MODE 1                 // undefined or 2=Both, 0=Cat-M1, 1=Cat-NB1
+
+#define GSM_NETWORK_SEARCH_TIMEOUT 60000    // can be up to several minutes for first time NB-IoT
+
+#define GPS_COLLECT_TIMEOUT       4         // max time spent looking for a GPS fix (seconds)
+
+#define ENGINE_RUNNING_LOG_FAST_AS_POSSIBLE 0 // 1=when the engine is running send interval is ignored
+
+#define DATA_INCLUDE_GPS_DATE 1             // enable to include the GPS date in the POST string
+#define DATA_INCLUDE_GPS_TIME 1             // enable to include the GPS time in the POST string
+#define DATA_INCLUDE_LATITUDE 1             // enable to include latitude
+#define DATA_INCLUDE_LONGITUDE 1            // enable to include longitude
+#define DATA_INCLUDE_SPEED 1                // enable to include speed (km/h)
+#define DATA_INCLUDE_ALTITUDE 1             // enable to include altitude
+#define DATA_INCLUDE_HEADING 1              // enable to include heading
+#define DATA_INCLUDE_HDOP 1                 // enable to include hdop
+#define DATA_USE_HDOP_FLOAT 1               // use decimal format for HDOP
+#define DATA_INCLUDE_SATELLITES 1           // enable to include satellites
+#define DATA_INCLUDE_BATTERY_LEVEL 0        // enable to include the battery level (Main)
+#define DATA_INCLUDE_BACKUP_LEVEL 0         // enable to include backup battery level (LiPo)
+#define DATA_INCLUDE_CHARGER_STATUS 0       // enable to include backup battery charger status
+#define DATA_INCLUDE_IGNITION_STATE 0       // enable to include the ignition state in the POST string
+#define DATA_INCLUDE_ENGINE_RUNNING_TIME 0  // enable to include the engine running time (in seconds) in the POST string
+
+#define PARSE_IGNORE_EOF 1        // 0=consider transmission successful if "eof" included in response body (default)
+#define PARSE_IGNORE_COMMANDS 1   // 0=parse commands included in response body (default)
+// define this macro to accept only certain HTTP response codes (default is any)
+#define PARSE_ACCEPTED_RESPONSE_CODES RESP_CODE(200)
+
+#define HTTP_USER_AGENT "Polaris 1.0"
+//#define HTTP_USE_GET                      // leave commented for POST, uncomment for GET request
+
+#define HTTP_PARAM_IMEI "imei"
+#define HTTP_PARAM_KEY  "key"
+#define HTTP_PARAM_DATA "d"
+
+#define PROTO "TCP"
+#define HOSTNAME "cloud.fortebit.tech"
+#define HTTP_PORT "80"
+#define URL "/index.php"
+
+
+#define DEFAULT_APN   "mobile.vodafone.it"      //default APN
+#define DEFAULT_USER  ""              //default APN user
+#define DEFAULT_PASS  ""              //default APN pass
+
+#define DEFAULT_ALARM_ON   0          //if active SMS will be sent on Ignition ON/OFF
+#define DEFAULT_ALARM_SMS  ""         //default SMS text for alarm
+
+#define PACKET_SIZE 1400              //TCP data chunk size, modem accept max 1460 bytes per send
+#define PACKET_SIZE_DELIVERY 3000     //in case modem has this number of bytes undelivered, wait till sending new data (3000 bytes default, max sending TCP buffer is 7300)
+
+#define CONNECT_RETRY 3               //how many times to retry connecting to remote server
+#define CONNECT_TIMEOUT 15000         //how much time to wait for each connection attempt
+#define SERVER_REPLY_TIMEOUT 15000    //how much to wait for server reply
+
+#define STORAGE 1                     //save logs in flash storage
+#define STORAGE_CONFIG_MAIN 0         //flash index to store configuration
+#define STORAGE_CONFIG_ADDON 512      //flash index to store addon configuration
+#define STORAGE_DATA_START 2048       //starting flash index to store logs (first bytes reserved for configuration)
+#define STORAGE_DATA_END 131071       //the last possible flash index (max 131072, one last byte must be reserved for marker)
+//#define STORAGE_DATA_END 4096       //the last possible flash index (max 131072, one last byte must be reserved for marker)
+
+#define STORAGE_MAX_SEND_OLD  5       //maximum number of old data to send from log
+
+// List of APN configurations to scan at power-on/reset
+// (undefine to use the default APN only)
+/*
+#define KNOWN_APN_LIST \
+  KNOWN_APN("example.apn", "user", "pass", "ISP name", NULL) \
+  RECORD FORMAT (ISP and NULL are not used) - INSERT ABOVE
+*/
+
+#define KNOWN_APN_SCAN_MODE 1       // 0=check GPRS context only, 2=attempt only server connection, 1=use both in sequence
+#define KNOWN_APN_SCAN_USE_RESET 0  // 1=reset modem to change APN, 0=change APN without reset
