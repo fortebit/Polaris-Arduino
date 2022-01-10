@@ -41,7 +41,7 @@ void data_append_sensor(const char *str) {
 void data_append_format(const char *fmt, ...) {
   va_list vl;
   va_start(vl, fmt);
-  vsnprintf(data_current + data_index, MAX_DATA_INDEX - data_index + 1, fmt, vl);
+  data_index += vsnprintf(data_current + data_index, MAX_DATA_INDEX - data_index + 1, fmt, vl);
   va_end(vl);
 }
 
