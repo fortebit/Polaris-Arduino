@@ -39,9 +39,10 @@ void addon_sms_command(char *cmd, char *arg, const char *phone) {
 void addon_collect_data()
 {
   // Append your own data to send to the server, for example additional sensors
-  
+#ifndef HTTP_USE_JSON
   data_append_char('{');
   data_field_restart();
+#endif
 
   // first sensor
   data_field_separator(',');
@@ -52,11 +53,13 @@ void addon_collect_data()
   // second sensor
   data_field_separator(',');
   data_append_sensor("my_sensor2");
-  data_append_long(12345);
+  data_append_long(6789);
    
-  //...
+  // etc...
 
+#ifndef HTTP_USE_JSON
   data_append_char('}');
+#endif
 }
 
 void addon_event(int event) {
