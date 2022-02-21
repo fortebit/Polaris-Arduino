@@ -231,7 +231,7 @@ void collect_gps_data() {
           data_field_separator(',');
           data_append_legacy_sensor("time");
           //time
-          data_append_fixed(time_gps,6);
+          data_append_fixed(time_gps,8);
         }
 
         if(DATA_INCLUDE_LATITUDE) {
