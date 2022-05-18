@@ -114,7 +114,7 @@ void setup() {
   //Secret data not printed by default
   //DEBUG_PRINTLN("Access token:");
   //DEBUG_PRINTLN(get_access_token());
-  
+
 #if DEBUG == 10
   debug_gsm_terminal();
 #endif
@@ -135,7 +135,7 @@ void setup() {
   if (config.alarm_on) {
     sms_send_msg("Alarm Activated", config.alarm_phone);
   }
-  
+
   // make sure we start with empty data
   data_reset();
 
@@ -394,6 +394,10 @@ void debug_check_input() {
       break;
     case '|':
       debug_gps_terminal();
+      break;
+    case 's':
+      SEND_DATA = !SEND_DATA;
+      DEBUG_PRINT("SEND_DATA="); DEBUG_PRINTLN(SEND_DATA);
       break;
     }
   }

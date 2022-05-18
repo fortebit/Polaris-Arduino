@@ -104,7 +104,8 @@
 #define STORAGE_DATA_END 131071       //the last possible flash index (max 131072, one last byte must be reserved for marker)
 //#define STORAGE_DATA_END 4096       //the last possible flash index (max 131072, one last byte must be reserved for marker)
 
-#define STORAGE_MAX_SEND_OLD  5       //maximum number of old data to send from log
+#define STORAGE_MAX_SEND_OLD  5       //maximum number of old data to send from log (0=no limit)
+#define STORAGE_MAX_SEND_TIME 60000   //maximum time to spend sending old data from log (0=no limit)
 
 // List of APN configurations to scan at power-on/reset
 // (undefine to use the default APN only)
